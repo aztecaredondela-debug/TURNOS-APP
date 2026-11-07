@@ -1,4 +1,16 @@
-const C="turnos-app-9",F=["./","index.html","style.css?v=9","manifest.json","icon-192.png","icon-512.png","base.js?v=9","datos.js?v=9","calculo.js?v=9","calendario.js?v=9","ciclo.js?v=9","resumen.js?v=9","permisos.js?v=9","festivos.js?v=9","ui.js?v=9","acciones.js?v=9","main.js?v=9"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>Promise.allSettled(F.map(u=>c.add(u)))).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const c=r.clone();caches.open(C).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(h=>h||caches.match("index.html"))))});
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Turnos</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f1318"><link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=9"></head><body><main id="v"></main>
+<nav id="nav"><button data-a=tab data-v=cal>📅 Calendario</button><button data-a=tab data-v=cic>🔁 Ciclo</button><button data-a=tab data-v=tur>🎨 Turnos</button><button data-a=tab data-v=per>🏖️ Permisos</button><button data-a=tab data-v=res>📊 Resumen</button></nav>
+<div id="sheet" hidden></div><input type="file" id="imp" accept="application/json" hidden>
+<script defer src="base.js?v=9"></script>
+<script defer src="datos.js?v=9"></script>
+<script defer src="calculo.js?v=9"></script>
+<script defer src="calendario.js?v=9"></script>
+<script defer src="ciclo.js?v=9"></script>
+<script defer src="resumen.js?v=9"></script>
+<script defer src="permisos.js?v=9"></script>
+<script defer src="festivos.js?v=9"></script>
+<script defer src="ui.js?v=9"></script>
+<script defer src="acciones.js?v=9"></script>
+<script defer src="main.js?v=9"></script></body></html>
