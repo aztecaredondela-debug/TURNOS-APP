@@ -1,102 +1,16 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Turnos</title>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f1318"><link rel="icon" href="icon-192.png">
-<style>
-:root{--bg:#0f1318;--card:#181e26;--line:#2a323d;--tx:#eef2f6;--mu:#8a96a6;--ac:#3ddc84}
-*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--tx);font:16px system-ui,sans-serif;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
-main{flex:1;overflow-y:auto;padding:14px;max-width:520px;width:100%;margin:0 auto}
-nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;padding:12px 2px;background:none;border:0;color:var(--mu);font:inherit;font-size:.8rem}nav button.on{color:var(--ac);font-weight:700}
-h2{font-size:1.05rem;margin:0}h3{margin:18px 0 8px;font-size:.95rem}button{font:inherit;color:var(--tx);cursor:pointer}
-.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.hd h2{text-transform:capitalize}
-.hd button{width:40px;height:40px;border-radius:50%;border:0;background:var(--line)}
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.dn{font-size:.7rem;color:var(--mu);text-align:center;padding-bottom:4px}
-.d,.cd{aspect-ratio:1/1.2;background:var(--card);border:0;border-bottom:3px solid var(--c);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:0}
-.d b,.cd b{color:var(--c)}.d small,.cd small{color:var(--mu);font-size:.7rem}.d.hoy{outline:2px solid var(--tx)}.d u{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--tx)}
-.brush{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}.ch{flex:none;min-width:44px;padding:8px 12px;border-radius:18px;border:2px solid var(--c,var(--line));background:var(--card)}.ch.on{background:var(--c,var(--line));color:#000;font-weight:700}
-.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:10px 0}.two{display:flex;gap:8px;margin:8px 0}.two>*{flex:1}
-button.pri{background:var(--ac);color:#000;font-weight:700;border:0;border-radius:10px;padding:12px}button.bad{width:100%;margin-top:8px;background:none;border:1px solid #ff5a67;color:#ff5a67;border-radius:10px;padding:10px}
-.two>button,.tp,.lb{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.tp,.lb{display:block;width:100%;text-align:left;margin-bottom:6px}
-.sw{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--c);margin-right:8px;vertical-align:-2px}
-label{display:block;font-size:.8rem;color:var(--mu);margin:10px 0}input,select{width:100%;margin-top:4px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--tx);font:inherit}input[type=color]{height:44px;padding:2px}label.chk{display:flex;gap:8px;align-items:center;color:var(--tx)}label.chk input{width:auto;margin:0}
-.ay,.tip{color:var(--mu);font-size:.85rem}.tip{background:var(--card);border:1px solid var(--ac);border-radius:10px;padding:10px;margin-bottom:10px}
-.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}.row em{color:var(--mu);font-style:normal}
-#sheet{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-end;z-index:9}#sheet[hidden]{display:none}.sh{background:var(--card);width:100%;max-width:520px;margin:0 auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto}.sh h3{margin-top:0}
-</style></head><body><main id="v"></main>
-<nav id="nav"><button data-a=tab data-v=cal>📅 Calendario</button><button data-a=tab data-v=cic>🔁 Ciclo</button><button data-a=tab data-v=tur>🎨 Turnos</button><button data-a=tab data-v=res>📊 Resumen</button></nav>
+<link rel="stylesheet" href="style.css?v=8"></head><body><main id="v"></main>
+<nav id="nav"><button data-a=tab data-v=cal>📅 Calendario</button><button data-a=tab data-v=cic>🔁 Ciclo</button><button data-a=tab data-v=tur>🎨 Turnos</button><button data-a=tab data-v=per>🏖️ Permisos</button><button data-a=tab data-v=res>📊 Resumen</button></nav>
 <div id="sheet" hidden></div><input type="file" id="imp" accept="application/json" hidden>
-<script>
-const K="turnos.v1",DN=["L","M","X","J","V","S","D"],$=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const iso=(y,m,d)=>`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-const hoy=()=>{const n=new Date();return iso(n.getFullYear(),n.getMonth(),n.getDate())};
-const dn=s=>{const[y,m,d]=s.split("-").map(Number);return Date.UTC(y,m-1,d)/864e5};
-const R=(a,n)=>Array(n).fill(a);
-const DEF=()=>({turnos:[{id:"m",cod:"M",nom:"Mañana",c:"#2dd4ff",ini:"06:00",fin:"14:00"},{id:"t",cod:"T",nom:"Tarde",c:"#ffa94d",ini:"14:00",fin:"22:00"},{id:"n",cod:"N",nom:"Noche",c:"#b388ff",ini:"22:00",fin:"06:00"},{id:"l",cod:"L",nom:"Libre",c:"#3ddc84",libre:1},{id:"v",cod:"V",nom:"Vacaciones",c:"#ff6b9d",perm:1}],ref:hoy(),ciclo:[...R("m",5),"l","l"],dias:{},hd:{},cfg:{}});
-const TPL=[["5 mañanas y 2 libres",[...R("m",5),...R("l",2)]],["Una semana de mañanas y otra de tardes",[...R("m",5),"l","l",...R("t",5),"l","l"]],["Mañana, tarde, noche y 2 libres",["m","t","n","l","l"]],["2 mañanas, 2 tardes, 2 noches y 2 libres",[...R("m",2),...R("t",2),...R("n",2),"l","l"]],["4 días de trabajo y 2 libres (mañanas)",[...R("m",4),"l","l"]],["Noches: 3 de trabajo y 3 libres",[...R("n",3),...R("l",3)]]];
-const norm=()=>{const c=S.cfg=S.cfg||{};if(c.h===undefined)c.h=c.sem??40;delete c.sem;c.modo=c.modo||"s";c.dias=Array.isArray(c.dias)&&c.dias.length===7?c.dias:[1,1,1,1,1,0,0];c.ini=c.ini??1;S.hd=S.hd||{}};
-let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}S=S||DEF();norm();
-let tab="cal",ver=new Date(),rv=new Date(),brush=null;ver.setDate(1);rv.setDate(1);
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-const T=id=>S.turnos.find(t=>t.id===id);
-const turno=f=>{if(S.dias[f]!==undefined)return T(S.dias[f]);const c=S.ciclo;if(!c.length)return null;return T(c[((dn(f)-dn(S.ref))%c.length+c.length)%c.length])};
-const mn=h=>{const[a,b]=h.split(":").map(Number);return a*60+b};
-const dur=(i,f,d)=>{const x=(mn(f)-mn(i)+1440)%1440;return Math.max(0,(x||1440)/60-(d||0)/60)};
-const horas=t=>!t||t.libre?0:t.perm?cred():(t.ini&&t.fin?dur(t.ini,t.fin,t.desc):0);
-// Horas que cuenta un día de vacaciones/permiso: las de su jornada diaria (o las que fije el usuario)
-const cred=auto=>{const c=S.cfg;if(c.perm&&!auto)return c.perm;if(c.modo==="n")return 0;const n=c.dias.reduce((a,b)=>a+b,0)||1;return c.modo==="d"?c.h:c.modo==="m"?c.h/(n*52/12):c.h/n};
-const wdi=f=>(new Date(dn(f)*864e5).getUTCDay()+6)%7;
-const horasDia=f=>{const o=S.hd[f];if(o)return dur(o.ini,o.fin,o.desc);const t=turno(f);return t&&t.perm&&!S.cfg.dias[wdi(f)]?0:horas(t)};
-const fN=n=>{const d=new Date(n*864e5);return iso(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())};
-const semana=n=>{let x=0;for(let i=0;i<7;i++)x+=horasDia(fN(n+i));return x};
-const fH=h=>(Math.round(h*10)/10)+" h";
-const mesTxt=d=>d.toLocaleString("es",{month:"long",year:"numeric"});
-const chip=(id,t,on)=>`<button class="ch${on?" on":""}" data-a=brush data-v="${id}" style="--c:${t.c}">${esc(t.cod)}</button>`;
-function cal(){const y=ver.getFullYear(),m=ver.getMonth(),h=hoy();let g=DN.map(d=>`<div class=dn>${d}</div>`).join("")+"<i></i>".repeat((new Date(y,m,1).getDay()+6)%7);
-for(let d=1;d<=new Date(y,m+1,0).getDate();d++){const f=iso(y,m,d),t=turno(f);g+=`<button class="d${f===h?" hoy":""}" data-a=dia data-v=${f} style="--c:${t?t.c:"#556"}"><small>${d}</small><b>${t?esc(t.cod):"–"}</b>${S.dias[f]!==undefined||S.hd[f]?"<u></u>":""}</button>`}
-const br=`<button class="ch${brush===null?" on":""}" data-a=brush data-v="">👆</button>`+S.turnos.map(t=>chip(t.id,t,brush===t.id)).join("")+`<button class="ch${brush==="__"?" on":""}" data-a=brush data-v="__">↺ Ciclo</button>`;
-return(S.visto?"":`<div class=tip>👋 Empieza en <b>Ciclo</b>: elige un modelo o crea el tuyo. En <b>Turnos</b> cambias nombres, colores y horas. <button class=lb style="margin:8px 0 0" data-a=ok>Entendido</button></div>`)+`<div class=hd><button data-a=mes data-v=-1>❮</button><h2>${mesTxt(ver)}</h2><button data-a=mes data-v=1>❯</button></div><div class=brush>${br}</div><div class=grid>${g}</div><p class=ay>Elige un turno arriba y toca los días para pintarlos. Con 👆, tocar un día abre sus opciones. El punto marca un cambio de turno o de horas.</p>`}
-function cic(){return`<h2>Mi ciclo</h2><p class=ay>Toca cada día para elegir su turno. El ciclo se repite sin fin.</p><div class=cg>${S.ciclo.map((id,i)=>{const t=T(id);return`<button class=cd data-a=cdia data-v=${i} style="--c:${t?t.c:"#556"}"><small>${i+1}</small><b>${t?esc(t.cod):"–"}</b></button>`}).join("")}</div><div class=two><button data-a=cadd>+ Añadir día</button><button data-a=cdel>− Quitar día</button></div><label>El día 1 del ciclo cae el<input type=date value="${S.ref}" onchange="if(this.value){S.ref=this.value;save()}"></label><h3>Modelos de partida</h3>${TPL.map((p,i)=>`<button class=tp data-a=tpl data-v=${i}>${esc(p[0])}</button>`).join("")}`}
-function tur(){return`<h2>Mis turnos</h2><p class=ay>Crea los que necesites: nombre, letra, color y horas.</p><div style="margin-top:10px">${S.turnos.map(t=>`<button class=lb data-a=edit data-v=${t.id} style="--c:${t.c}"><span class=sw></span><b>${esc(t.cod)}</b> · ${esc(t.nom)} <em style="color:var(--mu);font-style:normal;float:right">${t.libre?"libre":t.perm?"cuenta jornada":t.ini+"–"+t.fin}</em></button>`).join("")}</div><button class=pri style="width:100%" data-a=edit data-v=new>+ Nuevo turno</button><h3>Copia de seguridad</h3><div class=two><button data-a=exp>Guardar copia</button><button data-a=imp>Recuperar copia</button></div><p class=ay>Tus datos están solo en este móvil. Guarda una copia antes de cambiar de teléfono.</p>`}
-function res(){const c=S.cfg,y=rv.getFullYear(),m=rv.getMonth(),n=new Date(y,m+1,0).getDate(),cn={},hh={};let hs=0,ex=0,sal=0,ws="";
-const sg=x=>(x>0?"+":"")+fH(x),rw=(a,b,df)=>`<div class=row><span>${a}</span><b>${b}</b><em style="color:${df>0?"#ffa94d":df<0?"#ff6b9d":"var(--mu)"}">${df==null?"":sg(df)}</em></div>`;
-for(let d=1;d<=n;d++){const f=iso(y,m,d),t=turno(f),x=horasDia(f);hs+=x;if(t){cn[t.id]=(cn[t.id]||0)+1;hh[t.id]=(hh[t.id]||0)+x}
-if(c.modo==="d"&&x>0){const df=x-c.h;sal+=df;if(df>0){ex+=df;ws+=rw(`${DN[wdi(f)]} ${d}/${m+1}`,fH(x),df)}}
-if((c.modo==="s"||c.modo==="n")&&new Date(y,m,d).getDay()===c.ini){const w=semana(dn(f)),df=w-c.h;if(c.modo==="s"){sal+=df;if(df>0)ex+=df}ws+=rw(`Semana del ${d}/${m+1}`,fH(w),c.modo==="s"?df:null)}}
-if(c.modo==="m"){sal=hs-c.h;ex=Math.max(0,sal)}
-const card=(a,b)=>`<div class=tip style="margin:0"><small>${a}</small><br><b style="font-size:1.3rem">${b}</b></div>`;
-const sel=(js,opts,cur)=>`<select onchange="${js}">`+opts.map(([v,t])=>`<option value=${v} ${String(cur)===String(v)?"selected":""}>${t}</option>`).join("")+"</select>";
-return`<div class=hd><button data-a=rmes data-v=-1>❮</button><h2>${mesTxt(rv)}</h2><button data-a=rmes data-v=1>❯</button></div><div class=two>${c.modo==="n"?card("Horas del mes",fH(hs)):card("Horas extra",fH(ex))+card("Saldo del mes",sg(sal))}</div>`
-+(ws?`<h3>${c.modo==="d"?"Días con horas extra":"Por semanas"}</h3>${ws}`:"")+`<h3>Por turno</h3>`+S.turnos.map(t=>`<div class=row><span><span class=sw style="--c:${t.c}"></span>${esc(t.nom)}</span><b>${cn[t.id]||0} días</b><em>${t.libre?"":fH(hh[t.id]||0)}</em></div>`).join("")+`<div class=row><b>Horas del mes</b><b>${fH(hs)}</b></div>
-<h3>Mi jornada</h3><label>Calcular horas extra por${sel("S.cfg.modo=this.value;save();draw()",[["s","Semana"],["d","Día"],["m","Mes"],["n","No calcular (solo contar horas)"]],c.modo)}</label>`
-+(c.modo==="n"?"":`<label>Horas de tu jornada por ${{s:"semana",d:"día",m:"mes"}[c.modo]}<input type=number min=0.5 max=400 step=.5 value="${c.h}" onchange="if(+this.value>0){S.cfg.h=+this.value;save();draw()}"></label>`)
-+`<label>Días que trabajas según tu contrato</label><div class=brush>${DN.map((d,i)=>`<button class="ch${c.dias[i]?" on":""}" data-a=cdw data-v=${i}>${d}</button>`).join("")}</div><label>Horas que cuenta un día de vacaciones o permiso<input type=number min=0 step=.25 placeholder="Automático: ${fH(cred(1))}" value="${c.perm||""}" onchange="S.cfg.perm=+this.value||0;save();draw()"></label><label>La semana empieza en${sel("S.cfg.ini=+this.value;save();draw()",[[1,"Lunes"],[0,"Domingo"]],c.ini)}</label><p class=ay>Todo se calcula con tu horario y tu jornada. Cada semana cuenta en el mes en que empieza. Las vacaciones y permisos cuentan como jornada solo en los días de tu contrato.</p>`}
-const draw=()=>{$("#v").innerHTML={cal,cic,tur,res}[tab]();document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===tab))};
-const open=h=>{$("#sheet").innerHTML=`<div class=sh>${h}</div>`;$("#sheet").hidden=false};const shut=()=>{$("#sheet").hidden=true};
-const hrs=f=>{const o=S.hd[f]||{},t=turno(f)||{};return`<h3>Horas de este día</h3><div class=two><label>Entra<input id=hi type=time value="${o.ini||t.ini||"08:00"}"></label><label>Sale<input id=hf type=time value="${o.fin||t.fin||"16:00"}"></label></div><label>Descanso no pagado (min)<input id=hdc type=number min=0 value="${o.desc??t.desc??0}"></label><div class=two><button class=pri data-a=hsave data-v=${f}>Guardar horas</button><button data-a=hdel data-v=${f}>Quitar</button></div><p class=ay>Este día cuenta ${fH(horasDia(f))}.</p>`};
-const pick=(titulo,a,v)=>open(`<h3>${titulo}</h3>`+S.turnos.map(t=>`<button class=lb style="--c:${t.c}" data-a=${a} data-v="${v}|${t.id}"><span class=sw></span>${esc(t.cod)} · ${esc(t.nom)}</button>`).join("")+(a==="set"?`<button class=lb data-a=set data-v="${v}|__">↺ Volver al ciclo</button>`+hrs(v):"")+`<button class=lb data-a=close>Cerrar</button>`);
-function editor(id){const t=id==="new"?{cod:"",nom:"",c:"#4da3ff",ini:"08:00",fin:"16:00"}:T(id),k=t.libre?"l":t.perm?"p":"t";
-open(`<h3>${id==="new"?"Nuevo turno":"Editar turno"}</h3><label>Nombre<input id=fn value="${esc(t.nom)}" maxlength=20></label><label>Letra o abreviatura (hasta 3)<input id=fc value="${esc(t.cod)}" maxlength=3></label><label>Color<input id=fcol type=color value="${t.c}"></label><label>Tipo<select id=fl onchange="fh.hidden=this.value!=='t'"><option value=t ${k==="t"?"selected":""}>Trabajo</option><option value=l ${k==="l"?"selected":""}>Día libre</option><option value=p ${k==="p"?"selected":""}>Vacaciones o permiso (cuenta como jornada)</option></select></label><div id=fh ${k==="t"?"":"hidden"}><div class=two><label>Entra<input id=fi type=time value="${t.ini||"08:00"}"></label><label>Sale<input id=ff type=time value="${t.fin||"16:00"}"></label></div><label>Descanso no pagado (min)<input id=fdsc type=number min=0 value="${t.desc||0}"></label></div><div class=two><button class=pri data-a=sv data-v="${id}">Guardar</button><button data-a=close>Cancelar</button></div>${id==="new"?"":`<button class=bad data-a=rm data-v="${id}">Eliminar turno</button>`}`)}
-function act(a,v){switch(a){
-case"tab":tab=v;draw();break;case"ok":S.visto=1;save();draw();break;
-case"mes":ver.setMonth(ver.getMonth()+ +v);draw();break;case"rmes":rv.setMonth(rv.getMonth()+ +v);draw();break;
-case"brush":brush=v||null;draw();break;
-case"dia":if(brush===null)pick(new Date(v+"T00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"}),"set",v);else act("set",v+"|"+brush);break;
-case"set":{const[f,id]=v.split("|");if(id==="__")delete S.dias[f];else S.dias[f]=id;save();shut();draw();break}
-case"cdia":pick("Turno del día "+(+v+1),"cset",v);break;
-case"cset":{const[i,id]=v.split("|");S.ciclo[+i]=id;save();shut();draw();break}
-case"cadd":if(S.ciclo.length<120){S.ciclo.push(S.turnos.find(t=>t.libre)?.id||"");save();draw()}break;
-case"cdel":if(S.ciclo.length>1){S.ciclo.pop();save();draw()}break;
-case"tpl":if(confirm("Esto sustituye tu ciclo actual. Los cambios sueltos de días se mantienen. ¿Seguir?")){S.ciclo=TPL[+v][1].map(id=>T(id)?id:"");S.ref=hoy();save();draw()}break;
-case"hsave":S.hd[v]={ini:$("#hi").value,fin:$("#hf").value,desc:+$("#hdc").value||0};save();shut();draw();break;
-case"hdel":delete S.hd[v];save();shut();draw();break;
-case"cdw":S.cfg.dias[+v]=S.cfg.dias[+v]?0:1;save();draw();break;
-case"edit":editor(v);break;
-case"sv":{const nom=$("#fn").value.trim(),cod=$("#fc").value.trim().toUpperCase();if(!nom||!cod){alert("Pon un nombre y una letra.");return}
-const t=v==="new"?{id:"s"+Date.now().toString(36)}:T(v);const k=$("#fl").value;Object.assign(t,{nom,cod,c:$("#fcol").value,ini:$("#fi").value,fin:$("#ff").value,desc:+$("#fdsc").value||0});delete t.libre;delete t.perm;if(k==="l")t.libre=1;if(k==="p")t.perm=1;if(v==="new")S.turnos.push(t);save();shut();draw();break}
-case"rm":if(confirm("¿Eliminar este turno? Los días que lo usaban quedarán sin turno.")){S.turnos=S.turnos.filter(t=>t.id!==v);S.ciclo=S.ciclo.map(i=>i===v?"":i);for(const f in S.dias)if(S.dias[f]===v)delete S.dias[f];save();shut();draw()}break;
-case"exp":{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="turnos-copia.json";a.click();break}
-case"imp":$("#imp").click();break;case"close":shut();break}}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b)act(b.dataset.a,b.dataset.v)});
-$("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const d=JSON.parse(x);if(!Array.isArray(d.turnos)||!Array.isArray(d.ciclo)||typeof d.dias!=="object")throw 0;if(confirm("Esto sustituye todo lo que hay ahora. ¿Seguir?")){S=d;norm();save();draw()}}).catch(()=>alert("Ese archivo no es una copia válida."));e.target.value=""};
-draw();if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-</script></body></html>
+<script defer src="js/base.js?v=8"></script>
+<script defer src="js/datos.js?v=8"></script>
+<script defer src="js/calculo.js?v=8"></script>
+<script defer src="js/calendario.js?v=8"></script>
+<script defer src="js/ciclo.js?v=8"></script>
+<script defer src="js/resumen.js?v=8"></script>
+<script defer src="js/permisos.js?v=8"></script>
+<script defer src="js/festivos.js?v=8"></script>
+<script defer src="js/ui.js?v=8"></script>
+<script defer src="js/acciones.js?v=8"></script>
+<script defer src="js/main.js?v=8"></script></body></html>

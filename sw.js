@@ -1,4 +1,4 @@
-const C="turnos-app-3",F=["./","index.html","manifest.json","icon-192.png","icon-512.png"];
+const C="turnos-app-8",F=["./","index.html","style.css?v=8","manifest.json","icon-192.png","icon-512.png","js/base.js?v=8","js/datos.js?v=8","js/calculo.js?v=8","js/calendario.js?v=8","js/ciclo.js?v=8","js/resumen.js?v=8","js/permisos.js?v=8","js/festivos.js?v=8","js/ui.js?v=8","js/acciones.js?v=8","js/main.js?v=8"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>Promise.allSettled(F.map(u=>c.add(u)))).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const c=r.clone();caches.open(C).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(h=>h||caches.match("index.html"))))});

@@ -1,0 +1,8 @@
+// Datos: modelos de partida, estado guardado en el móvil y su normalización. Se carga como script normal (comparte variables con los demás archivos): el orden importa, ver index.html.
+const DEF=()=>({turnos:[{id:"m",cod:"M",nom:"Mañana",c:"#2dd4ff",ini:"06:00",fin:"14:00"},{id:"t",cod:"T",nom:"Tarde",c:"#ffa94d",ini:"14:00",fin:"22:00"},{id:"n",cod:"N",nom:"Noche",c:"#b388ff",ini:"22:00",fin:"06:00"},{id:"l",cod:"L",nom:"Libre",c:"#3ddc84",libre:1},{id:"v",cod:"V",nom:"Vacaciones",c:"#ff6b9d",perm:1},{id:"f",cod:"F",nom:"Festivo",c:"#ff5a67",perm:1},{id:"c",cod:"C",nom:"Días de convenio",c:"#ffd24d",perm:1},{id:"d",cod:"LD",nom:"Libre disposición",c:"#5ad1c5",perm:1}],ref:hoy(),ciclo:[...R("m",5),"l","l"],dias:{},hd:{},cfg:{}});
+const TPL=[["5 mañanas y 2 libres",[...R("m",5),...R("l",2)]],["Una semana de mañanas y otra de tardes",[...R("m",5),"l","l",...R("t",5),"l","l"]],["Mañana, tarde, noche y 2 libres",["m","t","n","l","l"]],["2 mañanas, 2 tardes, 2 noches y 2 libres",[...R("m",2),...R("t",2),...R("n",2),"l","l"]],["4 días de trabajo y 2 libres (mañanas)",[...R("m",4),"l","l"]],["Noches: 3 de trabajo y 3 libres",[...R("n",3),...R("l",3)]]];
+const norm=()=>{const c=S.cfg=S.cfg||{};if(c.h===undefined)c.h=c.sem??40;delete c.sem;c.modo=c.modo||"s";c.dias=Array.isArray(c.dias)&&c.dias.length===7?c.dias:[1,1,1,1,1,0,0];c.ini=c.ini??1;c.aini=c.aini??0;S.hd=S.hd||{};S.cb=S.cb||{};S.pd=S.pd||{};S.nt=S.nt||{};S.fe=S.fe||{}};
+let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}S=S||DEF();norm();
+let po=0,tab="cal",ver=new Date(),rv=new Date(),brush=null;ver.setDate(1);rv.setDate(1);
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const T=id=>S.turnos.find(t=>t.id===id);
