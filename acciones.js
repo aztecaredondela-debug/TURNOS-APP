@@ -9,7 +9,8 @@ case"cdia":pick("Turno del día "+(+v+1),"cset",v);break;
 case"cset":{const[i,id]=v.split("|");S.ciclo[+i]=id;save();shut();draw();break}
 case"cadd":if(S.ciclo.length<120){S.ciclo.push(S.turnos.find(t=>t.libre)?.id||"");save();draw()}break;
 case"cdel":if(S.ciclo.length>1){S.ciclo.pop();save();draw()}break;
-case"tpl":if(confirm("Esto sustituye tu ciclo actual. Los cambios sueltos de días se mantienen. ¿Seguir?")){S.ciclo=TPL[+v][1].map(id=>T(id)?id:"");S.ref=hoy();save();draw()}break;
+case"tpl":if(confirm("Esto sustituye tu ciclo actual. Los cambios sueltos de días se mantienen. ¿Seguir?")){S.ciclo=TPL[+v][1].map(id=>T(id)?id:"");S.ref=S.ciclo.length%7===0?lunHoy():hoy();save();draw()}break;
+case"csem":S.ref=fN(dn(lunHoy())-7*+v);save();draw();break;
 case"hsave":{const o={ini:$("#hi").value,fin:$("#hf").value,desc:+$("#hdc").value||0},a=$("#hi2").value,b=$("#hf2").value;if(a&&b){o.ini2=a;o.fin2=b}S.hd[v]=o}save();shut();draw();break;
 case"hdel":delete S.hd[v];save();shut();draw();break;
 case"cdw":S.cfg.dias[+v]=S.cfg.dias[+v]?0:1;save();draw();break;
